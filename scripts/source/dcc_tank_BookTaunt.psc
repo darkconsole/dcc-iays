@@ -26,5 +26,10 @@ Event OnRead()
 		Debug.MessageBox("You now have a lesser power to target a follower with and decide who is the tank.")
 	EndIf
 
+	if(!Main.Player.HasSpell(Main.dcc_tank_SpellMisdirect))
+		Main.Player.AddSpell(Main.dcc_tank_SpellMisdirect)
+		Debug.MessageBox("You now have a lesser power for ranged misdirection.")
+	EndIf
+
 	Return
 EndEvent

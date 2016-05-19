@@ -19,8 +19,15 @@ Event OnGameReload()
 {things to do when the game is loaded from disk.}
 
 	parent.OnGameReload()
-	Main.OnGameReload()
 
+	Int Ver = dcc_tank_QuestController.GetVersion()
+	If(Main.VersionCheck != Ver)
+		Debug.MessageBox("It appears you have updated. The internal quest is going to be restarted to complete the update. You will need to re-assign your tank afterwards.")
+		Main.ResetMod()
+		Return		
+	EndIf
+
+	Main.OnGameReload()
 	Return
 EndEvent
 
@@ -36,6 +43,11 @@ Event OnConfigInit()
 	self.Pages[1] = "Debug"
 	self.Pages[2] = "Splash"
 
+	Return
+EndEvent
+
+Event OnConfigRegister()
+	Main.ResetMod()
 	Return
 EndEvent
 
@@ -93,6 +105,9 @@ Event OnOptionSelect(Int Item)
 	ElseIf(Item == ItemFollowerTauntSay)
 		Main.OptFollowerTauntSay = !Main.OptFollowerTauntSay
 		Val = Main.OptFollowerTauntSay
+	ElseIf(Item == ItemFollowerTauntOnHit)
+		Main.OptFollowerTauntOnHit = !Main.OptFollowerTauntOnHit
+		Val = Main.OptFollowerTauntOnHit
 	ElseIf(Item == ItemTauntFX)
 		Main.OptTauntFX = !Main.OptTauntFX
 		Val = Main.OptTauntFX
@@ -122,8 +137,13 @@ Event OnOptionSliderOpen(Int Item)
 
 	If(Item == ItemFollowerTauntAttackCount)
 		Val = Main.OptFollowerTauntAttackCount
-		Min = 1
+		Min = 0
 		Max = 10
+		Interval = 1.0
+	ElseIf(Item == ItemFollowerTauntOnHitDistance)
+		Val = Main.OptFollowerTauntOnHitDistance / 21.3
+		Min = 8
+		Max = 128
 		Interval = 1.0
 	EndIf
 
@@ -141,6 +161,9 @@ Event OnOptionSliderAccept(Int Item, Float Val)
 
 	If(Item == ItemFollowerTauntAttackCount)
 		Main.OptFollowerTauntAttackCount = Val as Int
+	ElseIf(Item == ItemFollowerTauntOnHitDistance)
+		Main.OptFollowerTauntOnHitDistance = (Val * 21.3) as Int
+		Fmt = "{0}ft"
 	EndIf
 
 	self.SetSliderOptionValue(Item,Val,Fmt)
@@ -155,11 +178,15 @@ Event OnOptionHighlight(Int Item)
 	If(Item == ItemTauntTargetFearOnTaunt)
 		self.SetInfoText("When an enemy is successfully taunted their current target will run away for 2 seconds. This will help get them out of the way so they don't get retargeted.")
 	ElseIf(Item == ItemFollowerTauntAttackCount)
-		self.SetInfoText("Followers will perform a small AOE taunt (12ft) every X swings of their weapon. If you are using a fast attacking follower it is suggested you raise this to 5 or more, while 3 for slow swingers.")
+		self.SetInfoText("Followers will perform a small AOE taunt (12ft) every X swings of their weapon. If you are using a fast attacking follower it is suggested you raise this to 5 or more, while 3 for slow swingers. Set to 0 to disable.")
 	ElseIf(Item == ItemFollowerTauntFX)
 		self.SetInfoText("A small AOE FX burst occurs when followers taunt.")
 	ElseIf(Item == ItemFollowerTauntSay)
 		self.SetInfoText("Followers will yell insulting things when they taunt targets.")
+	ElseIf(Item == ItemFollowerTauntOnHit)
+		self.SetInfoText("Followers will taunt off you when you are hit.")
+	ElseIf(Item == ItemFollowerTauntOnHitDistance)
+		self.SetInfoText("How close to a follower you must be before they will taunt off you when you are hit.")
 	ElseIf(Item == ItemTauntFX)
 		self.SetInfoText("A small visual burst occurs on targets that are taunted.")
 	ElseIf(Item == ItemTauntPing)
@@ -190,28 +217,30 @@ Int ItemTauntTargetFearOnTaunt
 Int ItemFollowerTauntAttackCount
 Int ItemFollowerTauntFX
 Int ItemFollowerTauntSay
+Int ItemFollowerTauntOnHit
+Int ItemFollowerTauntOnHitDistance
 Int ItemTauntFX
 Int ItemTauntPing
 Int ItemTauntFocus
 
 Function ShowPageGeneral()
 	self.SetTitleText("General Settings")
-	self.SetCursorFillMode(LEFT_TO_RIGHT)
+	self.SetCursorFillMode(TOP_TO_BOTTOM)
+
 	self.SetCursorPosition(0)
-
 	self.AddHeaderOption("General Tanking Options")
-		self.AddHeaderOption("")
 	ItemTauntTargetFearOnTaunt = self.AddToggleOption("Enemy Target Flee On Taunt",Main.OptTauntTargetFearOnTaunt)
-		ItemTauntFX = self.AddToggleOption("Visual FX On Taunt Target",Main.OptTauntFX)
-	ItemTauntPing = self.AddToggleOption("Health Ping On Taunt Target",Main.OptTauntPing)
-		ItemTauntFocus = self.AddToggleOption("Focus Followers On Crouch+Bash",Main.OptTauntFocus)
+	ItemTauntPing = self.AddToggleOption("Enemy Health Ping On Taunt",Main.OptTauntPing)
+	ItemTauntFX = self.AddToggleOption("Enemy FX On Taunt",Main.OptTauntFX)
+	ItemTauntFocus = self.AddToggleOption("Focus Followers On CrouchBash",Main.OptTauntFocus)
 
+	self.SetCursorPosition(1)
 	self.AddHeaderOption("Follower Tanking Options")
-		self.AddHeaderOption("")
-	ItemFollowerTauntAttackCount = self.AddSliderOption("Attacks Between Taunt",Main.OptFollowerTauntAttackCount,"{0}")
-		ItemFollowerTauntFX = self.AddToggleOption("AOE FX On Taunt",Main.OptFollowerTauntFX)
-	ItemFollowerTauntSay = self.AddToggleOption("Taunt On Taunt",Main.OptFollowerTauntSay)
-		self.AddEmptyOption()
+	ItemFollowerTauntAttackCount = self.AddSliderOption("Taunt Every X Attacks",Main.OptFollowerTauntAttackCount,"{0}")
+	ItemFollowerTauntOnHit = self.AddToggleOption("Taunt Off When Player Hit",Main.OptFollowerTauntOnHit)
+	ItemFollowerTauntOnHitDistance = self.AddSliderOption("Taunt Off Distance",(Main.OptFollowerTauntOnHitDistance / 21.3),"{0}ft")
+	ItemFollowerTauntFX = self.AddToggleOption("AOE FX On Taunt",Main.OptFollowerTauntFX)
+	ItemFollowerTauntSay = self.AddToggleOption("Vocal Taunt On Taunt",Main.OptFollowerTauntSay)
 
 	Return
 EndFunction
