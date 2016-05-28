@@ -4,13 +4,13 @@ Scriptname dcc_tank_QuestController extends Quest
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-Int Property VersionCheck = 0 Auto
+Int Property VersionCheck = 0 Auto Hidden
 {this will get modified by the on load event.}
 
 Int Function GetVersion() Global
 {get the mod version.}
 
-	Return 101
+	Return 102
 EndFunction
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -31,8 +31,13 @@ Actor Property Player Auto
 Topic Property TopicTaunts Auto
 Keyword Property KeywordWeapTypeBow Auto
 
+LeveledItem Property LItemBookClutter Auto
+LeveledItem Property LItemBook0All Auto
+LeveledItem Property LItemBlacksmithMinimum Auto
+
 ;; mod forms.
 
+Book Property dcc_tank_BookTaunt Auto
 Message Property dcc_tank_MsgTankSwap Auto
 MagicEffect Property dcc_tank_EffectMisdirect Auto
 Spell Property dcc_tank_SpellAssign Auto
@@ -101,7 +106,7 @@ Function ResetMod()
 EndFunction
 
 Function ResetMod_Values()
-{reset all the options to default}
+{reset all the options to default.}
 
 	self.VersionCheck = dcc_tank_QuestController.GetVersion()
 
@@ -119,6 +124,16 @@ Function ResetMod_Values()
 	Return
 EndFunction
 
+Function ResetMod_LeveledItems()
+{readd things to the leveled item lists.}
+
+	LItemBookClutter.AddForm(dcc_tank_BookTaunt,1,1)
+	LItemBook0All.AddForm(dcc_tank_BookTaunt,1,1)
+	LItemBlacksmithMinimum.AddForm(dcc_tank_BookTaunt,1,1)
+
+	Return
+EndFunction
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -126,6 +141,7 @@ Event OnInit()
 {handle startup and reset}
 
 	self.ResetMod_Values()
+	self.ResetMod_LeveledItems()
 	Debug.Notification("I Am Your Shield has Started")
 	Return
 EndEvent

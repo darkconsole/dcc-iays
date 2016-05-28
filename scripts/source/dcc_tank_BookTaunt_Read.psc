@@ -1,4 +1,4 @@
-Scriptname dcc_tank_BookTaunt extends ObjectReference
+Scriptname dcc_tank_BookTaunt_Read extends ObjectReference
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
